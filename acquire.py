@@ -119,3 +119,17 @@ def scrape_github_data() -> List[Dict[str, str]]:
 if __name__ == "__main__":
     data = scrape_github_data()
     json.dump(data, open("data.json", "w"), indent=1)
+
+    
+def git_data(df=False):
+    '''
+    Get the Cached Data Dictionary
+    
+    **Optional**
+    -------------
+    if df == True it retrives the DataFrame instead
+    '''
+    if df:
+        return pd.read_pickle('readmes_dataframe')
+    
+    return pd.read_pickle('repo_dicts')
