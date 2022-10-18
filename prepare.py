@@ -8,6 +8,8 @@ from acquire import git_data
 import os
 from string import ascii_lowercase
 from itertools import product
+from textblob import TextBlob
+
 
 def get_letters ():
     letters = []
@@ -58,6 +60,11 @@ def remove_stopwords(string):
     dont_stop = [word for word in my_words if word not in stopper]
     unstopped = ' '.join(dont_stop)
     return unstopped
+
+def spell_check(string):
+    checker = TextBlob(string)
+    checked = str(checker.correct())
+    return checked
 
 def make_original(dataframe):
     for i in dataframe:
@@ -114,6 +121,7 @@ def git_df():
     # if the file is available locally, read it
     if os.path.isfile(filename):
         df = pd.read_pickle(filename)
+        df = df.drop(columns='index')        
         
     else:
         df = git_data(df=True)
@@ -129,6 +137,10 @@ def git_df():
         df.drop(index= 105, inplace=True)
         
         df = df.reset_index()
+        
+        df['true_clean'] = df['true_clean'].str.findall('\w{,12}').str.join(' ').str.findall('\w{4,}').str.join(' ')
+        
+        # df['true_clean'] = df['true_clean'].apply(spell_check)
 
         pd.to_pickle(df, 'clean_df')
     return df
