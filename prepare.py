@@ -54,7 +54,7 @@ def lemmatize(string):
 def remove_stopwords(string):
     stopper = stopwords.words('english')
     stopper.append("'")
-    stopper.extend(['http','https','img','png'])
+    stopper.extend(['http','https','img','png', 'github'])
     stopper.extend(get_letters())
     my_words = string.split()
     dont_stop = [word for word in my_words if word not in stopper]
