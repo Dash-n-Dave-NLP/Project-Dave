@@ -4,7 +4,7 @@ import unicodedata
 import re
 import nltk
 from nltk.corpus import stopwords
-from aquire import get_blog_articles, get_all_shorts
+from acquire import git_data
 
 
 def basic_clean(string):
@@ -12,7 +12,7 @@ def basic_clean(string):
     clean = unicodedata.normalize('NFKD', clean)\
     .encode('ascii', 'ignore')\
     .decode('utf-8')
-    clean = re.sub(r'[^a-z0-9\'\s]', '', clean)
+    clean = re.sub(r'[^a-z\'\s]', '', clean)
     
     return clean
 
@@ -40,6 +40,7 @@ def lemmatize(string):
 def remove_stopwords(string):
     stopper = stopwords.words('english')
     stopper.append("'")
+    stopper.extend(['http','https','img','png'])
     my_words = string.split()
     dont_stop = [word for word in my_words if word not in stopper]
     unstopped = ' '.join(dont_stop)
@@ -47,6 +48,9 @@ def remove_stopwords(string):
 
 def make_original(dataframe):
     for i in dataframe:
+        if i == 'readme_contents':
+            dataframe['original'] = dataframe['readme_contents'].copy()
+            dataframe.drop(columns= 'readme_contents', inplace=True)
         if i == 'body':
             dataframe['original'] = dataframe['body'].copy()
             dataframe.drop(columns= 'body', inplace=True)
@@ -83,4 +87,23 @@ def make_nlp_df():
     news_df = make_lemmatized(make_stemmed(make_clean(make_original(news_df))))
     
     return codeup_df, news_df
+
+
+def git_df():
+    '''
+    Parameters :
+    --------------
+    df         :   DataFrame with the site
+    '''
+    df = git_data(df=True)
+        
+    df = make_lemmatized(make_stemmed(make_clean(make_original(df))))
+    
+    df['original_length'] = df.original.apply(len)
+    
+    df = df.reset_index()
+    
+    df['true_clean'] = pd.Series([' '.join(re.split("[ .,;:!?‘’``''@#$%^_&*()<>{}~\n\t\\\-]", word)) for word in df.original]).apply(basic_clean).apply(str.strip).apply(tokenize).apply(remove_stopwords).apply(lemmatize) 
+    
+    return df
 
