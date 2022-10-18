@@ -9,6 +9,8 @@ import os
 from string import ascii_lowercase
 from itertools import product
 from textblob import TextBlob
+from nltk.corpus import words as english
+
 
 
 def get_letters ():
@@ -61,10 +63,17 @@ def remove_stopwords(string):
     unstopped = ' '.join(dont_stop)
     return unstopped
 
+# def spell_check(string):
+#     checker = TextBlob(string)
+#     checked = str(checker.correct())
+#     return checked
+
 def spell_check(string):
-    checker = TextBlob(string)
-    checked = str(checker.correct())
-    return checked
+    vocab = set(w.lower() for w in english.words())
+    checker = string.split()
+    checked = [word for word in checker if word in vocab]
+    checked_string = ' '.join(checked)
+    return checked_string
 
 def make_original(dataframe):
     for i in dataframe:
@@ -140,7 +149,7 @@ def git_df():
         
         df['true_clean'] = df['true_clean'].str.findall('\w{,12}').str.join(' ').str.findall('\w{4,}').str.join(' ')
         
-        # df['true_clean'] = df['true_clean'].apply(spell_check)
+        df['true_clean'] = df['true_clean'].apply(spell_check)
 
         pd.to_pickle(df, 'clean_df')
     return df
