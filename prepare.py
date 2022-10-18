@@ -5,6 +5,18 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from acquire import git_data
+import os
+from string import ascii_lowercase
+from itertools import product
+
+def get_letters ():
+    letters = []
+
+    for length in range(1, 3):
+        for combo in product(ascii_lowercase, repeat=length):
+            letters.append(''.join(combo))
+            
+    return letters
 
 
 def basic_clean(string):
@@ -41,6 +53,7 @@ def remove_stopwords(string):
     stopper = stopwords.words('english')
     stopper.append("'")
     stopper.extend(['http','https','img','png'])
+    stopper.extend(get_letters())
     my_words = string.split()
     dont_stop = [word for word in my_words if word not in stopper]
     unstopped = ' '.join(dont_stop)
@@ -95,15 +108,51 @@ def git_df():
     --------------
     df         :   DataFrame with the site
     '''
-    df = git_data(df=True)
+    # Set the filename for caching
+    filename= 'clean_df'
+    
+    # if the file is available locally, read it
+    if os.path.isfile(filename):
+        df = pd.read_pickle(filename)
         
-    df = make_lemmatized(make_stemmed(make_clean(make_original(df))))
-    
-    df['original_length'] = df.original.apply(len)
-    
-    df = df.reset_index()
-    
-    df['true_clean'] = pd.Series([' '.join(re.split("[ .,;:!?‘’``''@#$%^_&*()<>{}~\n\t\\\-]", word)) for word in df.original]).apply(basic_clean).apply(str.strip).apply(tokenize).apply(remove_stopwords).apply(lemmatize) 
-    
+    else:
+        df = git_data(df=True)
+
+        df = make_lemmatized(make_stemmed(make_clean(make_original(df))))
+
+        df['original_length'] = df.original.apply(len)
+
+        df = df.reset_index()
+
+        df['true_clean'] = pd.Series([' '.join(re.split("[ .,;:!?‘’``''@#$%^_&*()<>{}~\n\t\\\-]", word)) for word in df.original]).apply(basic_clean).apply(str.strip).apply(tokenize).apply(remove_stopwords).apply(lemmatize)
+        
+        df.drop(index= 105, inplace=True)
+        
+        df = df.reset_index()
+
+        pd.to_pickle(df, 'clean_df')
     return df
+
+def split_data(df, column):
+    '''This function takes in two arguments, a dataframe and a string. The string argument is the name of the
+        column that will be used to stratify the train_test_split. The function returns three dataframes, a 
+        training dataframe with 60 percent of the data, a validate dataframe with 20 percent of the data and test
+        dataframe with 20 percent of the data.'''
+    train, test = train_test_split(df, test_size=.2, random_state=217, stratify=df[column])
+    train, validate = train_test_split(train, test_size=.25, random_state=217, stratify=train[column])
+    return train, validate, test
+
+
+class code_language:
+    def __init__(self, words, label:str):
+        self.words = words
+        self.label = label
+        
+    def bigrams(self):
+        return pd.Series(list(nltk.bigrams(self.words.split())))
+    
+    def trigrams(self):
+        return pd.Series(list(nltk.ngrams(self.words.split(), 3)))
+    
+
 
