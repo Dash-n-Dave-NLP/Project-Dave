@@ -81,9 +81,9 @@ class percent(float):
 
 class Percent(float):
     def __str__(self):
-        return '{:0%}'.format(self)
+        return '{:.0%}'.format(self)
     def __repr__(self):
-        return '{:0%}'.format(self)
+        return '{:.0%}'.format(self)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<  FLAT  >~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#

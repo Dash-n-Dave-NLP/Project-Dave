@@ -6,6 +6,7 @@ import nltk
 from nltk.corpus import stopwords
 from acquire import git_data
 import os
+import matplotlib.pyplot as plt
 from string import ascii_lowercase
 from itertools import product
 from textblob import TextBlob
@@ -140,3 +141,35 @@ def word_counts(lb):
     
     return word_count
 
+###------------- chances  ------------###
+
+def chances(language_value_counts):
+    '''
+    
+    '''
+    best_chance = .166666
+    
+    for i, j in enumerate(language_value_counts):
+        print(f' For {bold(language_value_counts.index[i])}, \
+there\'s a {bold(str(percent(j/language_value_counts.sum())))} chance of that being correct')
+        if j/language_value_counts.sum() > best_chance:
+            best_guess = language_value_counts.index[i]
+            best_chace = j/language_value_counts.sum()
+        
+    print(f'\n\nBest Guess:  {bold(underline(str("C++")))}, \
+which gives us a {bold(underline(str(Percent(.1806))))} chance of being correct.')
+    
+    
+def top_20_percentages(lb):
+    all_word_counts = word_counts(lb)
+    
+    (all_word_counts.sort_values('all', ascending=False)
+     .head(20)
+     .apply(lambda row: row/row['all'], axis = 1)
+     .drop(columns = 'all')
+     .sort_values(by = 'python')
+     .plot.barh(stacked = True, width = 1, ec = 'k')
+    )
+    plt.title('Percentage of All Top 20 words in Each Programming language\
+    \nPython seems to be in Readme\'s Everywhere!', fontsize= 24)
+    plt.show()
