@@ -10,6 +10,7 @@ from string import ascii_lowercase
 from itertools import product
 from textblob import TextBlob
 from nltk.corpus import words as english
+from sklearn.model_selection import train_test_split
 
 
 
@@ -168,6 +169,10 @@ class code_language:
     def __init__(self, words, label:str):
         self.words = words
         self.label = label
+        # self.freq = freq
+        
+    def freq(self):
+        return pd.Series(self.words.split()).value_counts()
         
     def bigrams(self):
         return pd.Series(list(nltk.bigrams(self.words.split())))
@@ -175,5 +180,63 @@ class code_language:
     def trigrams(self):
         return pd.Series(list(nltk.ngrams(self.words.split(), 3)))
     
+    def make_language_bank(train):
+        '''
+        We put train heare as the Parameter dataframe to remind the user 
+        this should be used on train for exploration, after our
+        train, validate, test split
+        
+        Returned is a Library of code_language functions for 
+        bigrams, trigrams, and examining heteroskedacity 
+        for the data of each programing language
+        
+        example---
+        
+        lb = make_language_bank(train)
+        
+        lb['Python'].label -> 'Python'
+        lb['Python'].words -> '---All the words from Python Readme's---'
+        
+        lg.bigrams()       -> a pd.Series with a list of bigrams
+        '''
+        # for each language we will join all the readme entrys as words, and with their labels
+        python = code_language(words= ' '.join(train[train.language == 'Python'].true_clean),
+                               label= 'Python')
+        html = code_language(words= ' '.join(train[train.language == 'HTML'].true_clean),
+                             label= 'HTML')
+        c = code_language(words= ' '.join(train[train.language == 'C'].true_clean),
+                          label= 'C')
+        cplusplus = code_language(words= ' '.join(train[train.language == 'C++'].true_clean),
+                                  label= 'C++')
+        php = code_language(words= ' '.join(train[train.language == 'PHP'].true_clean),
+                            label= 'PHP')
+        other = code_language(words= ' '.join(train[train.language == 'Other'].true_clean),
+                              label= 'Other')
+        all_langs = code_language(words= ' '.join(train.true_clean),
+                                 label= 'All')
 
+        language_bank = {'Python': python,
+                         'HTML': html,
+                         'C': c,
+                         'C++': cplusplus,
+                         'PHP': php,
+                         'Other': other,
+                         'All': all_langs}
+        return language_bank
+
+def other_languages(df):
+    '''
+    Takes in the DataFrame with the languages all defined and 
+    spits it out with PHP, C++ Python, C, HTML, and Other
+    '''
+#     as above so below
+#       we use map to map the langauges we want and fillna with Other
+    df.language = df.language.map({'PHP':'PHP', 
+                 'C++':'C++',
+                 'Python':'Python',
+                 'C':'C', 
+                 'HTML':'HTML'}).fillna('Other')
+#     return the modified DataFrame
+
+    return df
 
